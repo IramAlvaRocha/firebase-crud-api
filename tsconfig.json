@@ -9,6 +9,11 @@
     "types": ["node"],
     "moduleResolution": "nodenext",
     "lib": ["esnext"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@generated/*": ["./src/generated/*"]
+    },
+    "baseUrl": ".",
 
     // Other Outputs
     "sourceMap": true,
