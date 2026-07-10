@@ -1,4 +1,5 @@
 import type { ITaskRepository, UpdateTaskData } from "@/domain/repositories/task.repository.js";
+import { NotFoundError, ForbiddenError } from "@/domain/errors/app-error.js";
 
 interface UpdateTaskInput extends UpdateTaskData {
     taskId: string;
@@ -15,11 +16,11 @@ export class UpdateTaskUseCase {
     }
 
     async execute(input: UpdateTaskInput) {
-        const task = await this.taskRepository.finfById(input.taskId);
+        const task = await this.taskRepository.findById(input.taskId);
 
-        if(!task) throw new Error("Task not found");
+        if(!task) throw new NotFoundError("Task not found");
 
-        if(task.userId !== input.userId) throw new Error('Forbidden: this task does not belong to you');
+        if(task.userId !== input.userId) throw new ForbiddenError('Forbidden: this task does not belong to you');
 
         return this.taskRepository.update(input.taskId, {
             title: input.title ?? task.title,

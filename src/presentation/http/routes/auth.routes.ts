@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { AuthController } from '../controllers/auth.controller.js';
-import { PrismaUserRepository } from '../../../infrastructure/repositories/prisma-user.repository.js';
-import { SyncUserUseCase } from '@/application/use-cases/sync-user.use-case.js';
+import { SyncUserUseCase } from '@/application/use-cases/index.js';
+import { PrismaUserRepository } from '@/infrastructure/repositories/index.js';
 import { prisma } from '@/infrastructure/database/prisma.client.js';
 
 const userRepository = new PrismaUserRepository(prisma);

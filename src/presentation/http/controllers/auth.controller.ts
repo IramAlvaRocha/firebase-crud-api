@@ -1,4 +1,4 @@
-import type { SyncUserUseCase } from "@/application/use-cases/sync-user.use-case.js";
+import type { SyncUserUseCase } from "@/application/use-cases/index.js";
 import type { Request, Response } from "express";
 
 export class AuthController {
@@ -6,6 +6,7 @@ export class AuthController {
     private readonly syncUserUserCase: SyncUserUseCase;
 
     constructor(syncUserUserCase: SyncUserUseCase){
+        if(!syncUserUserCase) throw new Error("Invalid dependencies. All dependencies must be provided.");
         this.syncUserUserCase = syncUserUserCase;
     };
 

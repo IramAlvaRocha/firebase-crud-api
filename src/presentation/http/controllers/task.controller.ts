@@ -1,9 +1,12 @@
-import type { CreateTaskUseCase } from "@/application/use-cases/create-task.use-case.js";
-import type { GetTasksUseCase } from "@/application/use-cases/get-tasks.use-case.js";
-import type { UpdateTaskUseCase } from "@/application/use-cases/update-task.use-case.js";
-import type { DeleteTaskUseCase } from "@/application/use-cases/delete.task.use-case.js";
-import type { IUserRepository } from "@/domain/repositories/user.repository.js";
-import type { Request, Response } from "express";
+import type {
+  CreateTaskUseCase,
+  GetTasksUseCase,
+  UpdateTaskUseCase,
+  DeleteTaskUseCase,
+} from "@/application/use-cases/index.js";
+import { UnauthorizedError } from "@/domain/errors/app-error.js";
+import type { IUserRepository } from "@/domain/repositories/index.js";
+import { type Request, type Response, type NextFunction } from "express";
 
 export class TaskController {
     
@@ -14,6 +17,10 @@ export class TaskController {
     private readonly userRepository: IUserRepository;   
 
     constructor(createTaskUseCase: CreateTaskUseCase, getTasksUseCase: GetTasksUseCase, updateTaskUseCase: UpdateTaskUseCase, deleteTaskUseCase: DeleteTaskUseCase, userRepository: IUserRepository){
+      
+      if(!createTaskUseCase || !getTasksUseCase || !updateTaskUseCase || !deleteTaskUseCase || !userRepository) 
+        throw new Error("Invalid dependencies. All dependencies must be provided.");
+      
         this.createTaskUseCase = createTaskUseCase;
         this.getTasksUseCase = getTasksUseCase;
         this.updateTaskUseCase = updateTaskUseCase;
@@ -24,12 +31,12 @@ export class TaskController {
 
     private async getInternalUserId(firebaseId: string): Promise<string> {
         const user = await this.userRepository.findByFirebaseId(firebaseId);
-        if(!user) throw new Error("User not found");
+        if(!user) throw new UnauthorizedError("User not synced. Please sync your account first.");
         return user.id;
     }
 
 
-    create = async (req: Request, res: Response): Promise<void> => {
+    create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
           const userId = await this.getInternalUserId(req.user!.uid);
           const { title, description } = req.body;
@@ -37,21 +44,21 @@ export class TaskController {
           const task = await this.createTaskUseCase.execute({ title, description, userId });
           res.status(201).json({ task });
         } catch (error) {
-          res.status(400).json({ error: (error as Error).message });
+          next(error);
         }
       };
     
-      getAll = async (req: Request, res: Response): Promise<void> => {
+      getAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
           const userId = await this.getInternalUserId(req.user!.uid);
           const tasks = await this.getTasksUseCase.execute(userId);
           res.status(200).json({ tasks });
         } catch (error) {
-          res.status(400).json({ error: (error as Error).message });
+          next(error);
         }
       };
     
-      update = async (req: Request, res: Response): Promise<void> => {
+      update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
           const userId = await this.getInternalUserId(req.user!.uid);
           const { id } = req.params;
@@ -66,13 +73,11 @@ export class TaskController {
           });
           res.status(200).json({ task });
         } catch (error) {
-          const message = (error as Error).message;
-          const status = message.includes('Forbidden') ? 403 : message.includes('not found') ? 404 : 400;
-          res.status(status).json({ error: message });
+          next(error);
         }
       };
     
-      delete = async (req: Request, res: Response): Promise<void> => {
+      delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
           const userId = await this.getInternalUserId(req.user!.uid);
           const { id } = req.params;
@@ -80,9 +85,7 @@ export class TaskController {
           await this.deleteTaskUseCase.execute({ taskId: id as string, userId });
           res.status(204).send();
         } catch (error) {
-          const message = (error as Error).message;
-          const status = message.includes('Forbidden') ? 403 : message.includes('not found') ? 404 : 400;
-          res.status(status).json({ error: message });
+          next(error);
         }
       };
 }

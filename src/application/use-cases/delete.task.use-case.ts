@@ -1,4 +1,5 @@
 import type { ITaskRepository } from "@/domain/repositories/task.repository.js";
+import { NotFoundError, ForbiddenError } from "@/domain/errors/app-error.js";
 
 interface DeleteTaskInput {
     taskId: string;
@@ -14,11 +15,11 @@ export class DeleteTaskUseCase {
     }
 
     async execute(input: DeleteTaskInput){
-        const task = await this.taskRepository.finfById(input.taskId);
+        const task = await this.taskRepository.findById(input.taskId);
 
-        if(!task) throw new Error("Task not found");
+        if(!task) throw new NotFoundError("Task not found");
 
-        if(task.userId !== input.userId) throw new Error('Forbidden: this task does not belong to you');
+        if(task.userId !== input.userId) throw new ForbiddenError('Forbidden: this task does not belong to you');
 
         await this.taskRepository.delete(input.taskId);
     }

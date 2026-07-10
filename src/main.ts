@@ -6,6 +6,7 @@ import type { Request, Response } from "express";
 import { firebaseAuth } from "./infrastructure/firebase/firebase-admin.js";
 import { authRoutes } from "./presentation/http/routes/auth.routes.js";
 import { taskRoutes } from "./presentation/http/routes/task.routes.js";
+import { errorHandler } from "./presentation/http/middlewares/error-handler.middleware.js";
  
 const app = express();
 
@@ -20,10 +21,9 @@ app.use(express.json());
 app.get("/health", (_req: Request, res: Response) => {
     res.json({ status: "ok", firebaseInitialized: !!firebaseAuth})
 });
-
 app.use("/auth", authRoutes);
-
-app.use("/tasks", taskRoutes    );
+app.use("/tasks", taskRoutes);
+app.use(errorHandler);
 
 app.listen(env.port, () => {
     console.log(`🚀 Firebase CRUD API Server is running on port ${env.port}`);

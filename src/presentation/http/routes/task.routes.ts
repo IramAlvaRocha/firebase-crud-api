@@ -1,13 +1,20 @@
 import { Router } from 'express';
-import { PrismaTaskRepository } from '@/infrastructure/repositories/prisma-task.repository.js';
-import { PrismaUserRepository } from '@/infrastructure/repositories/prisma-user.repository.js';
-import { CreateTaskUseCase } from '@/application/use-cases/create-task.use-case.js';
-import { GetTasksUseCase } from '@/application/use-cases/get-tasks.use-case.js';
-import { UpdateTaskUseCase } from '@/application/use-cases/update-task.use-case.js';
-import { DeleteTaskUseCase } from '@/application/use-cases/delete.task.use-case.js';
+import {
+  CreateTaskUseCase,
+  GetTasksUseCase,
+  UpdateTaskUseCase,
+  DeleteTaskUseCase,
+} from '@/application/use-cases/index.js';
+import {
+  PrismaTaskRepository,
+  PrismaUserRepository,
+} from '@/infrastructure/repositories/index.js';
 import { TaskController } from '../controllers/task.controller.js';
 import { prisma } from '@/infrastructure/database/prisma.client.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { validate } from '../middlewares/validate.middleware.js';
+import { createTaskSchema, updateTaskSchema } from '../validators/task.validator.js';
+	
 
 const taskRepository = new PrismaTaskRepository(prisma);
 const userRepository = new PrismaUserRepository(prisma);
@@ -29,7 +36,7 @@ export const taskRoutes: Router = Router();
 
 taskRoutes.use(authMiddleware);
 
-taskRoutes.post('/', taskController.create);
+taskRoutes.post('/', validate(createTaskSchema), taskController.create);
 taskRoutes.get('/', taskController.getAll);
-taskRoutes.patch('/:id', taskController.update);
+taskRoutes.patch('/:id', validate(updateTaskSchema), taskController.update);
 taskRoutes.delete('/:id', taskController.delete);

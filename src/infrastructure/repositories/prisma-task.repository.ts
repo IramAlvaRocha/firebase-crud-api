@@ -38,7 +38,7 @@ export class PrismaTaskRepository implements ITaskRepository {
         return tasks.map(this.toDomain);
     }
 
-    async finfById(id: string): Promise<Task | null> {
+    async findById(id: string): Promise<Task | null> {
         const task = await this.prisma.task.findUnique({
             where: { id }
         });
