@@ -1,4 +1,4 @@
-import type { User } from "../entitites/user.entity.js";
+import type { User } from "../entities/user.entity.js";
 
 export interface IUserRepository {
     findByFirebaseId(firebaseId: string) : Promise<User | null>;
